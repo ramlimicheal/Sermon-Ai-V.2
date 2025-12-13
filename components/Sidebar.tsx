@@ -31,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) =
           <div className="bg-bible-900 text-white p-1.5 rounded">
             <BookOpen className="h-4 w-4" />
           </div>
-          <span className="font-semibold text-bible-900 text-sm">SermonAI</span>
+          <span className="font-semibold text-bible-900 text-sm">Preachr</span>
         </div>
       </div>
 
