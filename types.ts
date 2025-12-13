@@ -43,11 +43,36 @@ export interface SavedSermon {
   scripture: string;
   language: Language;
   createdAt: string;
+  updatedAt?: string;
   title?: string;
   notes?: string;
+  tags?: string[];
+  seriesId?: string;
+  versions?: SermonVersion[];
+  currentVersionId?: string;
+}
+
+export interface SermonVersion {
+  id: string;
+  content: string;
+  createdAt: string;
+  changeDescription?: string;
+}
+
+export interface SermonSeries {
+  id: string;
+  title: string;
+  description?: string;
+  sermonIds: string[];
+  createdAt: string;
+  theme?: string;
 }
 
 export interface UserProfile {
   name: string;
   churchName: string;
+  denomination?: string;
+  defaultLanguage?: Language;
+  defaultOutlineStyle?: OutlineType;
+  emailNotifications?: boolean;
 }

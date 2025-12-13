@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { getCrossReferences } from '../services/geminiService';
-import { CrossReference, GenerationState, Language } from '../types';
-import { Card } from './ui/Card';
-import { Link2 } from 'lucide-react';
+import { getCrossReferences } from '@/services/geminiService';
+import { CrossReference, GenerationState, Language } from '@/types';
+import { Link2, Loader2, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 interface CrossReferenceEngineProps {
   scripture: string;
@@ -16,56 +16,50 @@ export const CrossReferenceEngine: React.FC<CrossReferenceEngineProps> = ({ scri
     error: null,
   });
 
+  const fetchData = async () => {
+    setState({ data: null, loading: true, error: null });
+    try {
+      const result = await getCrossReferences(scripture, language);
+      setState({ data: result, loading: false, error: null });
+    } catch (err) {
+      setState({ data: null, loading: false, error: "Failed to find cross references." });
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-        setState({ data: null, loading: true, error: null });
-        try {
-            const result = await getCrossReferences(scripture, language);
-            setState({ data: result, loading: false, error: null });
-        } catch (err) {
-            setState({ data: null, loading: false, error: "Failed to find cross references." });
-        }
-    };
     fetchData();
   }, [scripture, language]);
 
   return (
-    <Card 
-      title="Cross References" 
-      icon={<Link2 className="h-5 w-5" />}
-      className="h-full border-t-4 border-t-bible-400"
-      scrollable={true}
-    >
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="px-4 py-2 border-b border-bible-100 flex items-center justify-between shrink-0 bg-bible-50/50">
+        <span className="text-xs font-medium text-bible-500">Cross References</span>
+        <Button variant="ghost" size="sm" onClick={fetchData} disabled={state.loading} className="h-7 w-7 p-0">
+          <RefreshCw className={`h-3.5 w-3.5 ${state.loading ? 'animate-spin' : ''}`} />
+        </Button>
+      </div>
+      <div className="flex-1 overflow-y-auto p-4">
         {state.loading ? (
-             <div className="space-y-3 animate-pulse pt-1">
-             {[1, 2, 3, 4, 5].map(i => (
-                 <div key={i} className="flex flex-col gap-2 p-3 bg-bible-50/40 rounded-lg border border-bible-100/40">
-                      <div className="h-4 w-20 bg-bible-200/60 rounded"></div>
-                      <div className="space-y-1.5">
-                        <div className="h-3 w-full bg-bible-100/50 rounded"></div>
-                        <div className="h-3 w-3/4 bg-bible-100/50 rounded"></div>
-                      </div>
-                 </div>
-             ))}
-           </div>
+          <div className="flex flex-col items-center justify-center py-12 text-bible-400">
+            <Loader2 className="h-5 w-5 animate-spin mb-2" />
+            <span className="text-xs">Finding references...</span>
+          </div>
         ) : state.error ? (
-            <div className="text-red-500 p-3 bg-red-50 rounded-md text-sm">{state.error}</div>
+          <div className="text-center py-8">
+            <p className="text-sm text-red-600 mb-2">{state.error}</p>
+            <Button variant="outline" size="sm" onClick={fetchData}>Retry</Button>
+          </div>
         ) : (
-            <div className="space-y-3">
-                {state.data?.map((ref, idx) => (
-                    <div key={idx} className="group flex flex-col gap-1 p-3 rounded-lg bg-bible-50 hover:bg-bible-100 transition-colors border border-bible-100/50">
-                        <div className="flex items-center gap-2">
-                             <span className="font-serif font-bold text-bible-800 text-sm">
-                                {ref.reference}
-                            </span>
-                        </div>
-                        <p className="text-xs text-bible-600 leading-relaxed">
-                            {ref.connection}
-                        </p>
-                    </div>
-                ))}
-            </div>
+          <div className="space-y-2">
+            {state.data?.map((ref, idx) => (
+              <div key={idx} className="p-3 rounded-md border border-bible-200 bg-white hover:border-bible-300 transition-colors">
+                <p className="text-sm font-medium text-bible-900 mb-1">{ref.reference}</p>
+                <p className="text-xs text-bible-600 leading-relaxed">{ref.connection}</p>
+              </div>
+            ))}
+          </div>
         )}
-    </Card>
+      </div>
+    </div>
   );
 };

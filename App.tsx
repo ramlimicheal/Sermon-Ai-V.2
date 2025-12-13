@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { SermonInput } from './components/SermonInput';
-import { Dashboard } from './components/Dashboard';
-import { Sidebar } from './components/Sidebar';
-import { SermonLibrary } from './components/SermonLibrary';
-import { UserProfile } from './components/UserProfile';
-import { SermonData, Language, SavedSermon } from './types';
+import { SermonInput } from '@/components/SermonInput';
+import { Dashboard } from '@/components/Dashboard';
+import { Sidebar } from '@/components/Sidebar';
+import { SermonLibrary } from '@/components/SermonLibrary';
+import { UserProfile } from '@/components/UserProfile';
+import { SermonAnalytics } from '@/components/SermonAnalytics';
+import { SermonData, Language, SavedSermon } from '@/types';
 
-type View = 'dashboard' | 'new' | 'profile' | 'workspace';
+type View = 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
 
 export default function App() {
   const [view, setView] = useState<View>('dashboard');
@@ -63,6 +64,12 @@ export default function App() {
         {view === 'profile' && (
            <div className="h-full overflow-y-auto">
               <UserProfile />
+           </div>
+        )}
+
+        {view === 'analytics' && (
+           <div className="h-full overflow-y-auto">
+              <SermonAnalytics />
            </div>
         )}
 
