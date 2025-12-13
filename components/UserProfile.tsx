@@ -146,7 +146,7 @@ export const UserProfile: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-lg font-serif font-bold text-bible-900">Subscription Plan</h3>
-                <p className="text-sm text-bible-500">Manage your SermonAI subscription</p>
+                <p className="text-sm text-bible-500">Manage your Preachr subscription</p>
               </div>
             </div>
 

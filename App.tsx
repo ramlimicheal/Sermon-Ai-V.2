@@ -5,22 +5,22 @@ import { Sidebar } from '@/components/Sidebar';
 import { SermonLibrary } from '@/components/SermonLibrary';
 import { UserProfile } from '@/components/UserProfile';
 import { SermonAnalytics } from '@/components/SermonAnalytics';
+import { LandingPage } from '@/components/LandingPage';
+import { AuthPages } from '@/components/AuthPages';
 import { SermonData, Language, SavedSermon } from '@/types';
 
-type View = 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
+type View = 'landing' | 'auth' | 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
 
 export default function App() {
-  const [view, setView] = useState<View>('dashboard');
+  const [view, setView] = useState<View>('landing');
   const [sermonData, setSermonData] = useState<SermonData | null>(null);
 
   const handleInputSubmit = (scripture: string, language: Language) => {
-    // New sermon, no ID or notes yet
     setSermonData({ scripture, language });
     setView('workspace');
   };
 
   const handleOpenSermon = (sermon: SavedSermon) => {
-    // Open existing sermon with ID and Notes
     setSermonData({ 
         id: sermon.id,
         scripture: sermon.scripture, 
@@ -36,6 +36,24 @@ export default function App() {
         setSermonData(null);
     }
   };
+
+  const handleGetStarted = () => {
+    setView('auth');
+  };
+
+  const handleAuthComplete = () => {
+    setView('dashboard');
+  };
+
+  // Show landing page for unauthenticated users
+  if (view === 'landing') {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
+
+  // Show auth pages
+  if (view === 'auth') {
+    return <AuthPages onComplete={handleAuthComplete} />;
+  }
 
   return (
     <div className="flex h-screen bg-bible-50 text-bible-900 font-sans selection:bg-bible-200 selection:text-bible-900">
