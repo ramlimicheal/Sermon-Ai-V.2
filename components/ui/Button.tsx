@@ -15,26 +15,26 @@ export const Button: React.FC<ButtonProps> = ({
   disabled, 
   ...props 
 }) => {
-  const baseStyles = "inline-flex items-center justify-center rounded-lg font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bible-500/50 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]";
+  const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bible-900 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
   
   const sizes = {
     sm: "h-8 px-3 text-xs",
-    md: "h-10 px-4 py-2 text-sm",
-    lg: "h-12 px-6 text-base",
+    md: "h-9 px-4 text-sm",
+    lg: "h-11 px-6 text-sm",
   };
 
   const variants = {
-    // Solid dark for primary actions - High contrast
-    primary: "bg-bible-900 text-white hover:bg-black shadow-[0_1px_2px_rgba(0,0,0,0.1)] border border-transparent",
+    // Solid dark - primary actions
+    primary: "bg-bible-900 text-white hover:bg-bible-800",
     
-    // White with border for secondary - Clear distinction from background
-    secondary: "bg-white text-bible-800 border border-bible-200 hover:bg-bible-50 hover:border-bible-300 shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
+    // Light background - secondary actions
+    secondary: "bg-bible-100 text-bible-900 hover:bg-bible-200",
     
-    // Transparent with border
-    outline: "border border-bible-300 bg-transparent text-bible-700 hover:bg-bible-50 hover:text-bible-900",
+    // Border only
+    outline: "border border-bible-200 bg-white text-bible-700 hover:bg-bible-50 hover:text-bible-900",
     
-    // Minimalist for icons/text only
-    ghost: "text-bible-500 hover:bg-bible-100/50 hover:text-bible-900",
+    // No background
+    ghost: "text-bible-600 hover:bg-bible-100 hover:text-bible-900",
   };
 
   return (

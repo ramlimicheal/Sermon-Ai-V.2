@@ -3,9 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sermon Builder AI</title>
+    <title>SermonAI - AI-Powered Sermon Preparation</title>
+    <meta name="description" content="Professional sermon preparation platform for pastors and religious leaders. Synthesize commentaries, find illustrations, and build outlines with AI." />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
@@ -16,26 +17,36 @@
             },
             colors: {
               bible: {
-                50: '#faf9f6',  /* Off-white */
-                100: '#f5f5f4', /* Stone 100 */
-                200: '#e7e5e4', /* Stone 200 */
-                300: '#d6d3d1', /* Stone 300 */
-                400: '#a8a29e', /* Stone 400 */
-                500: '#78716c', /* Stone 500 */
-                600: '#57534e', /* Stone 600 */
-                700: '#44403c', /* Stone 700 */
-                800: '#292524', /* Stone 800 - Deep Warm Gray */
-                900: '#1c1917', /* Stone 900 - Almost Black */
+                50: '#fafafa',   /* Zinc 50 - Clean white */
+                100: '#f4f4f5',  /* Zinc 100 */
+                200: '#e4e4e7',  /* Zinc 200 */
+                300: '#d4d4d8',  /* Zinc 300 */
+                400: '#a1a1aa',  /* Zinc 400 */
+                500: '#71717a',  /* Zinc 500 */
+                600: '#52525b',  /* Zinc 600 */
+                700: '#3f3f46',  /* Zinc 700 */
+                800: '#27272a',  /* Zinc 800 */
+                900: '#18181b',  /* Zinc 900 - Deep black */
+                950: '#09090b',  /* Near black */
               }
             },
             animation: {
-              'fade-in': 'fadeIn 0.5s ease-out',
+              'fade-in': 'fadeIn 0.4s ease-out',
+              'slide-up': 'slideUp 0.3s ease-out',
             },
             keyframes: {
               fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '0%': { opacity: '0', transform: 'translateY(8px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              slideUp: {
+                '0%': { opacity: '0', transform: 'translateY(4px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
               }
+            },
+            boxShadow: {
+              'soft': '0 1px 2px 0 rgb(0 0 0 / 0.03), 0 1px 3px 0 rgb(0 0 0 / 0.05)',
+              'card': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
             }
           },
         },
@@ -43,21 +54,15 @@
     </script>
     <style>
       body {
-        background-color: #faf9f6; /* bible-50 */
+        background-color: #fafafa;
       }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar { width: 6px; height: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #a1a1aa; }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "react-markdown": "https://aistudiocdn.com/react-markdown@^10.1.0"
-  }
-}
-</script>
+  <script type="module" src="/index.tsx"></script>
 </head>
   <body>
     <div id="root"></div>

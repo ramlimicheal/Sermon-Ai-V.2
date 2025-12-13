@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { BookOpen, ArrowRight, Languages, Sparkles } from 'lucide-react';
-import { Button } from './ui/Button';
-import { Language } from '../types';
+import { BookOpen, ArrowRight, Languages } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Language } from '@/types';
 
 interface SermonInputProps {
   onSubmit: (scripture: string, language: Language) => void;
@@ -19,75 +19,72 @@ export const SermonInput: React.FC<SermonInputProps> = ({ onSubmit }) => {
   };
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center px-4 relative overflow-hidden bg-bible-50">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-orange-100/40 rounded-full blur-[100px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-bible-200/40 rounded-full blur-[100px]"></div>
-      </div>
-
-      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center space-y-10 text-center relative z-10 animate-fade-in">
-        <div className="space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-bible-200 shadow-sm text-xs font-semibold text-bible-600 mb-2">
-             <Sparkles className="h-3 w-3 text-orange-400" /> AI Research Assistant
-          </div>
-          <h1 className="font-serif text-5xl font-bold tracking-tight text-bible-900 sm:text-6xl leading-tight">
-            Research Sermons<br/><span className="text-bible-500">in Seconds.</span>
-          </h1>
-          <p className="text-bible-500 md:text-lg font-light max-w-xl mx-auto leading-relaxed">
-            Synthesize commentaries, find illustrations, and build outlines—all in one beautiful workspace.
-          </p>
+    <div className="flex min-h-full flex-col items-center justify-center px-4 bg-bible-50">
+      <div className="mx-auto flex w-full max-w-md flex-col items-center text-center animate-fade-in">
+        {/* Icon */}
+        <div className="w-12 h-12 rounded-xl bg-bible-900 flex items-center justify-center mb-6">
+          <BookOpen className="h-6 w-6 text-white" />
         </div>
-        
-        <form onSubmit={handleSubmit} className="w-full">
-          <div className="bg-white p-2 rounded-2xl shadow-xl shadow-bible-200/50 border border-bible-100 flex flex-col sm:flex-row gap-2">
-             <div className="flex-1 relative">
-                <input
-                type="text"
-                className="w-full h-14 rounded-xl border-none bg-transparent px-4 text-lg text-bible-900 placeholder:text-bible-300 focus:ring-0"
-                placeholder="Enter a passage (e.g., Psalm 23)"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                autoFocus
-                />
-             </div>
-             
-             <div className="h-px sm:h-auto sm:w-px bg-bible-100 mx-2"></div>
 
-             <div className="relative sm:w-32 shrink-0">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-2 pointer-events-none text-bible-400">
-                    <Languages className="h-4 w-4" />
-                </div>
-                <select
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value as Language)}
-                    className="h-14 w-full appearance-none rounded-xl border-none bg-transparent pl-8 pr-8 text-sm font-medium text-bible-700 focus:ring-0 cursor-pointer hover:bg-bible-50 transition-colors"
-                >
-                    <option value="English">English</option>
-                    <option value="Tamil">Tamil</option>
-                </select>
-             </div>
-             
-             <Button 
-                type="submit" 
-                className="h-14 px-8 rounded-xl text-base font-semibold shadow-none bg-bible-900 hover:bg-bible-800 transition-all shrink-0" 
-                disabled={!value.trim()}
-             >
-                Start <ArrowRight className="ml-2 h-5 w-5" />
-             </Button>
+        {/* Title */}
+        <h1 className="text-2xl font-semibold text-bible-900 mb-2">
+          New Sermon
+        </h1>
+        <p className="text-sm text-bible-500 mb-8 max-w-sm">
+          Enter a scripture passage to begin your research with AI-powered commentary, illustrations, and outlines.
+        </p>
+        
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
+          <div>
+            <input
+              type="text"
+              className="w-full h-11 rounded-lg border border-bible-200 bg-white px-4 text-sm text-bible-900 placeholder:text-bible-400 focus:outline-none focus:ring-2 focus:ring-bible-900 focus:border-transparent"
+              placeholder="Enter a passage (e.g., Psalm 23)"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              autoFocus
+            />
+          </div>
+          
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Languages className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-bible-400" />
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as Language)}
+                className="w-full h-11 appearance-none rounded-lg border border-bible-200 bg-white pl-10 pr-4 text-sm text-bible-700 focus:outline-none focus:ring-2 focus:ring-bible-900 focus:border-transparent cursor-pointer"
+              >
+                <option value="English">English</option>
+                <option value="Tamil">Tamil</option>
+              </select>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="h-11 px-6" 
+              disabled={!value.trim()}
+            >
+              Start
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </form>
         
-        <div className="flex flex-wrap justify-center gap-3 w-full pt-4">
-             <div className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-full border border-bible-100 text-xs font-medium text-bible-600">
-                <BookOpen className="h-3.5 w-3.5" /> Theology
-             </div>
-             <div className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-full border border-bible-100 text-xs font-medium text-bible-600">
-                <Sparkles className="h-3.5 w-3.5" /> Illustrations
-             </div>
-             <div className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-full border border-bible-100 text-xs font-medium text-bible-600">
-                <ArrowRight className="h-3.5 w-3.5" /> Outlines
-             </div>
+        {/* Features */}
+        <div className="flex items-center gap-4 mt-8 text-xs text-bible-500">
+          <span className="flex items-center gap-1.5">
+            <div className="w-1 h-1 rounded-full bg-bible-400" />
+            Commentary
+          </span>
+          <span className="flex items-center gap-1.5">
+            <div className="w-1 h-1 rounded-full bg-bible-400" />
+            Illustrations
+          </span>
+          <span className="flex items-center gap-1.5">
+            <div className="w-1 h-1 rounded-full bg-bible-400" />
+            Outlines
+          </span>
         </div>
       </div>
     </div>

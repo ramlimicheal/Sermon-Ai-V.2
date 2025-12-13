@@ -1,109 +1,104 @@
 import React from 'react';
-import { LayoutDashboard, PlusCircle, User, BookOpen, LogOut, Search, Settings, HelpCircle, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, HelpCircle, BarChart3, BookOpen, LogOut } from 'lucide-react';
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'new' | 'profile' | 'workspace';
-  onChangeView: (view: 'dashboard' | 'new' | 'profile') => void;
+  currentView: 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
+  onChangeView: (view: 'dashboard' | 'new' | 'profile' | 'analytics') => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
   const mainNav = [
-    { id: 'dashboard', label: 'Home', icon: <LayoutDashboard className="h-4 w-4" /> },
-    { id: 'new', label: 'New Sermon', icon: <PlusCircle className="h-4 w-4" /> },
+    { id: 'dashboard', label: 'Library', icon: LayoutDashboard },
+    { id: 'new', label: 'New Sermon', icon: PlusCircle },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   ];
 
   const utilityNav = [
-    { id: 'profile', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
+    { id: 'profile', label: 'Settings', icon: Settings },
   ];
 
   const isActive = (id: string) => {
-    if (id === 'dashboard' && currentView === 'workspace') return false; // Dashboard isn't active when in workspace
-    if (id === 'new' && currentView === 'workspace') return true; // Keep 'New' active or maybe none? Let's generic it.
+    if (id === 'dashboard' && currentView === 'workspace') return false;
+    if (id === 'new' && currentView === 'workspace') return true;
     return currentView === id;
   };
 
   return (
-    <div className="w-64 bg-white border-r border-bible-200 flex flex-col h-full shrink-0 transition-all duration-300 font-sans">
-      {/* Brand Header */}
-      <div className="h-16 flex items-center px-6 border-b border-bible-100/50">
-        <div className="flex items-center gap-2 text-bible-900">
-          <div className="bg-bible-900 text-white p-1.5 rounded-md">
-             <BookOpen className="h-5 w-5" />
+    <div className="w-56 bg-white border-r border-bible-200 flex flex-col h-full shrink-0 font-sans">
+      {/* Brand */}
+      <div className="h-14 flex items-center px-4 border-b border-bible-100">
+        <div className="flex items-center gap-2">
+          <div className="bg-bible-900 text-white p-1.5 rounded">
+            <BookOpen className="h-4 w-4" />
           </div>
-          <span className="font-serif font-bold text-lg tracking-tight">SermonAI</span>
+          <span className="font-semibold text-bible-900 text-sm">SermonAI</span>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-y-auto py-6 px-4 space-y-8">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-bible-400" />
-          <input 
-            type="text" 
-            placeholder="Search..." 
-            className="w-full pl-9 pr-4 py-2 bg-bible-50 border border-bible-200 rounded-lg text-sm text-bible-700 focus:outline-none focus:ring-2 focus:ring-bible-200 transition-all placeholder:text-bible-400"
-          />
+      {/* Navigation */}
+      <div className="flex-1 flex flex-col py-4 px-3">
+        {/* Main Nav */}
+        <div className="space-y-1">
+          <div className="px-2 mb-2 text-[10px] font-medium text-bible-400 uppercase tracking-wider">Menu</div>
+          {mainNav.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onChangeView(item.id as any)}
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+                  isActive(item.id)
+                    ? 'bg-bible-100 text-bible-900 font-medium' 
+                    : 'text-bible-600 hover:bg-bible-50 hover:text-bible-900'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Main Navigation */}
-        <div className="space-y-1">
-          <div className="px-2 mb-2 text-xs font-semibold text-bible-400 uppercase tracking-wider">Main</div>
-          {mainNav.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onChangeView(item.id as any)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all group ${
-                isActive(item.id)
-                  ? 'bg-bible-100 text-bible-900 font-medium' 
-                  : 'text-bible-500 hover:bg-bible-50 hover:text-bible-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {item.icon}
-                <span className="text-sm">{item.label}</span>
-              </div>
-            </button>
-          ))}
-        </div>
+        <div className="my-4 h-px bg-bible-100" />
 
-        {/* Utility Navigation */}
+        {/* Utility Nav */}
         <div className="space-y-1">
-          <div className="px-2 mb-2 text-xs font-semibold text-bible-400 uppercase tracking-wider">Utility</div>
-          {utilityNav.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onChangeView(item.id as any)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-md transition-all group ${
-                isActive(item.id)
-                  ? 'bg-bible-100 text-bible-900 font-medium' 
-                  : 'text-bible-500 hover:bg-bible-50 hover:text-bible-700'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {item.icon}
-                <span className="text-sm">{item.label}</span>
-              </div>
-            </button>
-          ))}
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-bible-500 hover:bg-bible-50 hover:text-bible-700 transition-all">
-             <HelpCircle className="h-4 w-4" />
-             <span className="text-sm">Support</span>
+          <div className="px-2 mb-2 text-[10px] font-medium text-bible-400 uppercase tracking-wider">Settings</div>
+          {utilityNav.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => onChangeView(item.id as any)}
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors ${
+                  isActive(item.id)
+                    ? 'bg-bible-100 text-bible-900 font-medium' 
+                    : 'text-bible-600 hover:bg-bible-50 hover:text-bible-900'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+          <button className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-bible-600 hover:bg-bible-50 hover:text-bible-900 transition-colors">
+            <HelpCircle className="h-4 w-4" />
+            <span>Help</span>
           </button>
         </div>
       </div>
 
-      {/* User Footer */}
-      <div className="p-4 border-t border-bible-100">
-        <button className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-bible-50 transition-colors text-left">
-           <div className="h-8 w-8 rounded-full bg-bible-200 flex items-center justify-center text-bible-700 font-bold text-xs">
-              PR
-           </div>
-           <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-bible-900 truncate">Pastor Rev.</p>
-              <p className="text-xs text-bible-500 truncate">pastor@church.org</p>
-           </div>
-           <LogOut className="h-4 w-4 text-bible-400" />
-        </button>
+      {/* User */}
+      <div className="p-3 border-t border-bible-100">
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-bible-50 transition-colors cursor-pointer">
+          <div className="h-7 w-7 rounded-full bg-bible-200 flex items-center justify-center text-bible-700 text-xs font-medium">
+            PR
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-bible-900 truncate">Pastor</p>
+          </div>
+          <LogOut className="h-3.5 w-3.5 text-bible-400" />
+        </div>
       </div>
     </div>
   );
