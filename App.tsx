@@ -19,7 +19,7 @@ export default function App() {
   const [view, setView] = useState<View>('landing');
   const [sermonData, setSermonData] = useState<SermonData | null>(null);
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
-  const { isOpen: commandPaletteOpen, openPalette, closePalette } = useCommandPalette();
+  const { isOpen: commandPaletteOpen, open: openPalette, close: closePalette } = useCommandPalette();
 
   const recentSermons = getSermons().slice(0, 5).map(s => ({
     id: s.id,
