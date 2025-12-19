@@ -36,7 +36,7 @@ export const callMegaLLM = async (
   } = {}
 ): Promise<string> => {
   const {
-    model = 'gpt-4o-mini',
+    model = 'llama-3.1-8b-instant',
     temperature = 0.7,
     max_tokens = 4096,
     response_format,
@@ -87,7 +87,7 @@ export const streamMegaLLM = async (
   } = {}
 ): Promise<string> => {
   const {
-    model = 'gpt-4o-mini',
+    model = 'llama-3.1-8b-instant',
     temperature = 0.7,
     max_tokens = 4096,
   } = options;

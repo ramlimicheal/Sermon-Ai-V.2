@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { synthesizeCommentary } from '@/services/geminiService';
-import { getDemoCommentary, isDemoMode } from '@/services/demoService';
+import { generateSermonContent } from '@/services/megaLLMService';
+import { getDemoCommentary } from '@/services/demoService';
 import { GenerationState, Language } from '@/types';
 import { RefreshCw, Loader2, Sparkles, Info } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -33,7 +33,7 @@ export const CommentarySynthesizer: React.FC<CommentarySynthesizerProps> = ({ sc
   const fetchData = async () => {
     setState({ content: null, citations: [], isDemo: false, loading: true, error: null });
     try {
-      const result = await synthesizeCommentary(scripture, language);
+      const result = await generateSermonContent('commentary', scripture, language);
       setState({ 
         content: result, 
         citations: generateMockCitations(scripture),

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getCrossReferences } from '@/services/geminiService';
+import { callMegaLLM } from '@/services/megaLLMService';
 import { getDemoCrossReferences } from '@/services/demoService';
 import { CrossReference, GenerationState, Language } from '@/types';
 import { Link2, Loader2, RefreshCw, Sparkles, Info, Plus, ExternalLink } from 'lucide-react';
@@ -38,7 +38,32 @@ export const CrossReferenceEngine: React.FC<CrossReferenceEngineProps> = ({ scri
   const fetchData = async () => {
     setState({ data: null, isDemo: false, loading: true, error: null });
     try {
-      const result = await getCrossReferences(scripture, language);
+      const prompt = `Provide 5 key biblical cross-references that connect to: "${scripture}".
+${language === 'Tamil' ? 'Output ALL content in Tamil language.' : 'Output in English.'}
+
+Return a JSON array with exactly 5 objects, each having:
+- reference: The scripture reference (e.g., "Romans 8:28")
+- connection: A brief explanation of how they connect (1-2 sentences)
+- type: One of "thematic", "prophetic", "theological", or "typological"
+
+Return ONLY the JSON array, no other text.`;
+
+      const response = await callMegaLLM([
+        { role: 'system', content: 'You are a helpful assistant that finds biblical cross-references. Always respond with valid JSON.' },
+        { role: 'user', content: prompt }
+      ], { response_format: { type: 'json_object' } });
+      
+      // Parse the JSON response
+      let result: CrossReference[];
+      try {
+        const parsed = JSON.parse(response);
+        result = Array.isArray(parsed) ? parsed : parsed.references || parsed.crossReferences || [];
+      } catch {
+        // If JSON parsing fails, try to extract array from response
+        const match = response.match(/\[[\s\S]*\]/);
+        result = match ? JSON.parse(match[0]) : [];
+      }
+      
       setState({ data: result, isDemo: false, loading: false, error: null });
     } catch (err) {
       // Fall back to demo mode with beautiful mock content

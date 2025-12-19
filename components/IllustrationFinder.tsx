@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { findIllustrations } from '@/services/geminiService';
+import { callMegaLLM } from '@/services/megaLLMService';
 import { getDemoIllustrations } from '@/services/demoService';
 import { Illustration, GenerationState, Language } from '@/types';
 import { Lightbulb, Search, Book, Microscope, Hourglass, Loader2, Sparkles, Info, Plus } from 'lucide-react';
@@ -32,7 +32,32 @@ export const IllustrationFinder: React.FC<IllustrationFinderProps> = ({ language
 
     setState({ data: null, isDemo: false, loading: true, error: null });
     try {
-      const results = await findIllustrations(theme, language);
+      const prompt = `Find 3 distinct, powerful sermon illustrations for the theme: "${theme}".
+${language === 'Tamil' ? 'Output ALL content in Tamil language.' : 'Output in English.'}
+
+Return a JSON array with exactly 3 objects, each having:
+- title: A compelling title for the illustration
+- sourceType: One of "Historical", "Scientific", "Literature", or "Modern"
+- content: The full illustration story (2-3 paragraphs)
+
+Return ONLY the JSON array, no other text.`;
+
+      const response = await callMegaLLM([
+        { role: 'system', content: 'You are a helpful assistant that finds sermon illustrations. Always respond with valid JSON.' },
+        { role: 'user', content: prompt }
+      ], { response_format: { type: 'json_object' } });
+      
+      // Parse the JSON response
+      let results: Illustration[];
+      try {
+        const parsed = JSON.parse(response);
+        results = Array.isArray(parsed) ? parsed : parsed.illustrations || [];
+      } catch {
+        // If JSON parsing fails, try to extract array from response
+        const match = response.match(/\[[\s\S]*\]/);
+        results = match ? JSON.parse(match[0]) : [];
+      }
+      
       setState({ data: results, isDemo: false, loading: false, error: null });
     } catch (err) {
       // Fall back to demo mode with beautiful mock content

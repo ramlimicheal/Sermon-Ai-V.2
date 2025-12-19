@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Target, Users, Heart, Briefcase, Home, Loader2, Plus, Sparkles, Info, Copy, Check } from 'lucide-react';
-import { generateApplications } from '@/services/geminiService';
+import { callMegaLLM } from '@/services/megaLLMService';
 import { getDemoApplications } from '@/services/demoService';
 import { Language } from '@/types';
 import { CardSkeleton } from '@/components/ui/Skeleton';
@@ -36,7 +36,39 @@ export const ApplicationBuilder: React.FC<ApplicationBuilderProps> = ({ scriptur
   const handleGenerate = async () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     try {
-      const result = await generateApplications(scripture, language);
+      const prompt = `Generate practical applications of "${scripture}" for different audiences.
+${language === 'Tamil' ? 'Output ALL content in Tamil language.' : 'Output in English.'}
+
+Return a JSON array with exactly 5 objects, one for each audience:
+- Youth (teens)
+- Families
+- Singles
+- Professionals
+- Seniors
+
+Each object should have:
+- audience: The audience name
+- application: How the passage applies to their specific life situation (2-3 sentences)
+- actionStep: A concrete action step they can take this week (1 sentence)
+
+Return ONLY the JSON array, no other text.`;
+
+      const response = await callMegaLLM([
+        { role: 'system', content: 'You are a helpful assistant that creates practical sermon applications. Always respond with valid JSON.' },
+        { role: 'user', content: prompt }
+      ], { response_format: { type: 'json_object' } });
+      
+      // Parse the JSON response
+      let result: Application[];
+      try {
+        const parsed = JSON.parse(response);
+        result = Array.isArray(parsed) ? parsed : parsed.applications || [];
+      } catch {
+        // If JSON parsing fails, try to extract array from response
+        const match = response.match(/\[[\s\S]*\]/);
+        result = match ? JSON.parse(match[0]) : [];
+      }
+      
       setState({ data: result, isDemo: false, loading: false, error: null });
     } catch (error) {
       // Fall back to demo mode with beautiful mock content

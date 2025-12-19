@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { generateOutline } from '@/services/geminiService';
+import { generateSermonContent } from '@/services/megaLLMService';
 import { getDemoOutline } from '@/services/demoService';
 import { OutlineType, GenerationState, Language } from '@/types';
 import { List, Wand2, Copy, Check, Loader2, Sparkles, Info, Plus } from 'lucide-react';
@@ -32,7 +32,7 @@ export const OutlineGenerator: React.FC<OutlineGeneratorProps> = ({ scripture, l
   const handleGenerate = async () => {
     setState({ data: null, isDemo: false, loading: true, error: null });
     try {
-      const result = await generateOutline(scripture, type, language);
+      const result = await generateSermonContent('outline', scripture, language, type);
       setState({ data: result, isDemo: false, loading: false, error: null });
     } catch (err) {
       // Fall back to demo mode with beautiful mock content
