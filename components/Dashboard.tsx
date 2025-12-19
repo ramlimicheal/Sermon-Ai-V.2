@@ -22,6 +22,8 @@ import { TeamSharing } from '@/components/TeamSharing';
 import { CalendarIntegration } from '@/components/CalendarIntegration';
 import { AudioTranscription } from '@/components/AudioTranscription';
 import { SermonCoach } from '@/components/SermonCoach';
+import { PodiumMode } from '@/components/PodiumMode';
+import { ContentRepurposer } from '@/components/ContentRepurposer';
 import { 
   ChevronLeft, 
   BookOpen, 
@@ -36,7 +38,9 @@ import {
   FileText,
   PenLine,
   LayoutList,
-  Calendar
+  Calendar,
+  Presentation,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { saveSermon, addSermonVersion, getSermonVersions, restoreSermonVersion, deleteSermonVersion, updateSermonTags, scheduleSermon, getScheduledSermons, removeScheduledSermon } from '@/services/storageService';
@@ -65,6 +69,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
   const [versions, setVersions] = useState<any[]>([]);
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [scheduledSermons, setScheduledSermons] = useState<any[]>([]);
+  const [showPodiumMode, setShowPodiumMode] = useState(false);
 
   useEffect(() => {
     setCurrentNotes(data.notes || '');
@@ -280,16 +285,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
               <Calendar className="h-3.5 w-3.5 mr-1.5" />
               Series
             </Button>
-            <Button
-              onClick={() => setUseRichEditor(!useRichEditor)}
-              variant="outline"
-              size="sm"
-            >
-              {useRichEditor ? 'Simple Editor' : 'Rich Editor'}
-            </Button>
-          </div>
-        </div>
-      </header>
+                  <Button
+                    onClick={() => setUseRichEditor(!useRichEditor)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {useRichEditor ? 'Simple Editor' : 'Rich Editor'}
+                  </Button>
+                  <ContentRepurposer
+                    sermonTitle={data.scripture}
+                    scripture={data.scripture}
+                    sermonContent={currentNotes}
+                    language={data.language}
+                  />
+                  <Button
+                    onClick={() => setShowPodiumMode(true)}
+                    size="sm"
+                    className="bg-amber-600 hover:bg-amber-700"
+                  >
+                    <Presentation className="h-3.5 w-3.5 mr-1.5" />
+                    Podium Mode
+                  </Button>
+                </div>
+              </div>
+            </header>
+
+            {/* Podium Mode Overlay */}
+            {showPodiumMode && (
+              <PodiumMode
+                sermonTitle={data.scripture}
+                scripture={data.scripture}
+                content={currentNotes}
+                onClose={() => setShowPodiumMode(false)}
+              />
+            )}
 
       {/* Main Content */}
       <main className="flex-1 overflow-hidden">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SermonInput } from '@/components/SermonInput';
 import { Dashboard } from '@/components/Dashboard';
 import { Sidebar } from '@/components/Sidebar';
@@ -7,13 +7,16 @@ import { UserProfile } from '@/components/UserProfile';
 import { SermonAnalytics } from '@/components/SermonAnalytics';
 import { LandingPage } from '@/components/LandingPage';
 import { AuthPages } from '@/components/AuthPages';
+import { OnboardingFlow, hasCompletedOnboarding } from '@/components/OnboardingFlow';
+import { VoiceProfile } from '@/components/YourVoiceSettings';
 import { SermonData, Language, SavedSermon } from '@/types';
 
-type View = 'landing' | 'auth' | 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
+type View = 'landing' | 'auth' | 'onboarding' | 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
 
 export default function App() {
   const [view, setView] = useState<View>('landing');
   const [sermonData, setSermonData] = useState<SermonData | null>(null);
+  const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
 
   const handleInputSubmit = (scripture: string, language: Language) => {
     setSermonData({ scripture, language });
@@ -41,19 +44,42 @@ export default function App() {
     setView('auth');
   };
 
-  const handleAuthComplete = () => {
-    setView('dashboard');
-  };
+    const handleAuthComplete = () => {
+      if (!hasCompletedOnboarding()) {
+        setView('onboarding');
+      } else {
+        setView('dashboard');
+      }
+    };
 
-  // Show landing page for unauthenticated users
-  if (view === 'landing') {
-    return <LandingPage onGetStarted={handleGetStarted} />;
-  }
+    const handleOnboardingComplete = (profile: VoiceProfile) => {
+      setVoiceProfile(profile);
+      setView('dashboard');
+    };
 
-  // Show auth pages
-  if (view === 'auth') {
-    return <AuthPages onComplete={handleAuthComplete} />;
-  }
+    const handleOnboardingSkip = () => {
+      setView('dashboard');
+    };
+
+    // Show landing page for unauthenticated users
+    if (view === 'landing') {
+      return <LandingPage onGetStarted={handleGetStarted} />;
+    }
+
+    // Show auth pages
+    if (view === 'auth') {
+      return <AuthPages onComplete={handleAuthComplete} />;
+    }
+
+    // Show onboarding flow for new users
+    if (view === 'onboarding') {
+      return (
+        <OnboardingFlow 
+          onComplete={handleOnboardingComplete} 
+          onSkip={handleOnboardingSkip} 
+        />
+      );
+    }
 
   return (
     <div className="flex h-screen bg-bible-50 text-bible-900 font-sans selection:bg-bible-200 selection:text-bible-900">
