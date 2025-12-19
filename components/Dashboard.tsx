@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SermonData } from '@/types';
 import { CommentarySynthesizer } from '@/components/CommentarySynthesizer';
 import { IllustrationFinder } from '@/components/IllustrationFinder';
@@ -24,6 +25,8 @@ import { AudioTranscription } from '@/components/AudioTranscription';
 import { SermonCoach } from '@/components/SermonCoach';
 import { PodiumMode } from '@/components/PodiumMode';
 import { ContentRepurposer } from '@/components/ContentRepurposer';
+import { SermonProgressRail, SermonStage } from '@/components/SermonProgressRail';
+import { BlockEditor, SermonBlock } from '@/components/BlockEditor';
 import { 
   ChevronLeft, 
   BookOpen, 
@@ -40,7 +43,8 @@ import {
   LayoutList,
   Calendar,
   Presentation,
-  Sparkles
+  Sparkles,
+  Command
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { saveSermon, addSermonVersion, getSermonVersions, restoreSermonVersion, deleteSermonVersion, updateSermonTags, scheduleSermon, getScheduledSermons, removeScheduledSermon } from '@/services/storageService';
@@ -60,7 +64,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
   const [studyTool, setStudyTool] = useState<StudyTool>('commentary');
   const [connectTool, setConnectTool] = useState<ConnectTool>('crossref');
   const [craftTool, setCraftTool] = useState<CraftTool>('illustrations');
-  const [rightTab, setRightTab] = useState<'outline' | 'notes' | 'tags' | 'versions'>('outline');
+  const [rightTab, setRightTab] = useState<'outline' | 'notes' | 'blocks' | 'tags' | 'versions'>('outline');
+  const [sermonBlocks, setSermonBlocks] = useState<SermonBlock[]>([]);
   const [currentNotes, setCurrentNotes] = useState(data.notes || '');
   const [currentId, setCurrentId] = useState(data.id);
   const [showSeriesBuilder, setShowSeriesBuilder] = useState(false);
@@ -70,6 +75,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [scheduledSermons, setScheduledSermons] = useState<any[]>([]);
   const [showPodiumMode, setShowPodiumMode] = useState(false);
+  const [currentStage, setCurrentStage] = useState<SermonStage>('exegesis');
+  const [completedStages, setCompletedStages] = useState<SermonStage[]>([]);
+
+  const handleStageClick = (stage: SermonStage) => {
+    setCurrentStage(stage);
+    if (stage === 'exegesis') {
+      setActiveCategory('study');
+      setStudyTool('commentary');
+    } else if (stage === 'bigIdea') {
+      setActiveCategory('study');
+      setStudyTool('exegesis');
+    } else if (stage === 'outline') {
+      setRightTab('outline');
+    } else if (stage === 'manuscript') {
+      setRightTab('notes');
+    } else if (stage === 'podium') {
+      setShowPodiumMode(true);
+    }
+  };
+
+  const markStageComplete = (stage: SermonStage) => {
+    if (!completedStages.includes(stage)) {
+      setCompletedStages([...completedStages, stage]);
+    }
+  };
 
   useEffect(() => {
     setCurrentNotes(data.notes || '');
@@ -255,6 +285,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
             </div>
           </div>
 
+          {/* Sermon Progress Rail */}
+          <div className="mb-3">
+            <SermonProgressRail
+              currentStage={currentStage}
+              completedStages={completedStages}
+              onStageClick={handleStageClick}
+              variant="compact"
+            />
+          </div>
+
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-2">
             <EmailSharing sermonTitle={data.scripture} sermonContent={currentNotes} />
@@ -418,18 +458,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
                 <FileText className="h-4 w-4" />
                 Quick Outline
               </button>
-              <button
-                onClick={() => setRightTab('notes')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
-                  rightTab === 'notes'
-                    ? 'text-bible-900 border-b-2 border-bible-900'
-                    : 'text-bible-500 hover:text-bible-700'
-                }`}
-              >
-                <PenLine className="h-4 w-4" />
-                My Notes
-              </button>
-            </div>
+                          <button
+                            onClick={() => setRightTab('notes')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                              rightTab === 'notes'
+                                ? 'text-bible-900 border-b-2 border-bible-900'
+                                : 'text-bible-500 hover:text-bible-700'
+                            }`}
+                          >
+                            <PenLine className="h-4 w-4" />
+                            My Notes
+                          </button>
+                          <button
+                            onClick={() => setRightTab('blocks')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors ${
+                              rightTab === 'blocks'
+                                ? 'text-bible-900 border-b-2 border-bible-900'
+                                : 'text-bible-500 hover:text-bible-700'
+                            }`}
+                          >
+                            <LayoutList className="h-4 w-4" />
+                            Blocks
+                          </button>
+                        </div>
 
             {/* Content */}
             <div className="flex-1 overflow-hidden">
@@ -438,13 +489,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
                   <OutlineGenerator scripture={data.scripture} language={data.language} />
                 </div>
               )}
-              {rightTab === 'notes' && (
-                <SermonEditor
-                  initialContent={currentNotes}
-                  onSave={handleSaveNotes}
-                />
-              )}
-            </div>
+                          {rightTab === 'notes' && (
+                            <SermonEditor
+                              initialContent={currentNotes}
+                              onSave={handleSaveNotes}
+                            />
+                          )}
+                          {rightTab === 'blocks' && (
+                            <div className="h-full overflow-auto">
+                              <BlockEditor
+                                blocks={sermonBlocks}
+                                onChange={setSermonBlocks}
+                                onAIFill={(blockId, blockType) => {
+                                  console.log('AI Fill requested for block:', blockId, blockType);
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
           </div>
         </div>
       </main>

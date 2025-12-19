@@ -1,32 +1,59 @@
-
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { generateOutline } from '@/services/geminiService';
+import { generateSermonContent } from '@/services/megaLLMService';
+import { getDemoOutline } from '@/services/demoService';
 import { OutlineType, GenerationState, Language } from '@/types';
-import { List, Wand2, Copy, Check, Loader2 } from 'lucide-react';
+import { List, Wand2, Copy, Check, Loader2, Sparkles, Info, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { OutlineSkeleton } from '@/components/ui/Skeleton';
 
 interface OutlineGeneratorProps {
   scripture: string;
   language: Language;
 }
 
+interface OutlineState {
+  data: string | null;
+  isDemo: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
 export const OutlineGenerator: React.FC<OutlineGeneratorProps> = ({ scripture, language }) => {
   const [type, setType] = useState<OutlineType>(OutlineType.EXPOSITORY);
-  const [state, setState] = useState<GenerationState<string>>({
+  const [state, setState] = useState<OutlineState>({
     data: null,
+    isDemo: false,
     loading: false,
     error: null,
   });
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    setState({ data: null, isDemo: false, loading: true, error: null });
     try {
-      const result = await generateOutline(scripture, type, language);
-      setState({ data: result, loading: false, error: null });
+      const result = await generateSermonContent('outline', scripture, language, type);
+      setState({ data: result, isDemo: false, loading: false, error: null });
     } catch (err) {
-      setState({ data: null, loading: false, error: "Failed to generate outline." });
+      // Fall back to demo mode with beautiful mock content
+      try {
+        const demoResult = await getDemoOutline(scripture, type);
+        // Convert demo outline object to markdown string
+        const markdownContent = `# ${demoResult.title}
+
+## Introduction
+${demoResult.introduction}
+
+${demoResult.points.map((point, idx) => `## ${idx + 1}. ${point.title}
+${point.scripture ? `*${point.scripture}*\n\n` : ''}${point.content}
+${point.application ? `\n**Application:** ${point.application}` : ''}`).join('\n\n')}
+
+## Conclusion
+${demoResult.conclusion}`;
+        setState({ data: markdownContent, isDemo: true, loading: false, error: null });
+      } catch (demoErr) {
+        setState({ data: null, isDemo: false, loading: false, error: "Failed to generate outline." });
+      }
     }
   };
 
@@ -58,14 +85,19 @@ export const OutlineGenerator: React.FC<OutlineGeneratorProps> = ({ scripture, l
         </div>
       </div>
 
+      {/* Demo mode banner */}
+      {state.isDemo && (
+        <div className="px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 flex items-center gap-2">
+          <Info className="h-4 w-4 text-amber-600" />
+          <span className="text-xs text-amber-700">
+            Viewing demo outline. <button className="underline font-medium hover:text-amber-900">Connect AI</button> to unlock live, personalized results.
+          </span>
+        </div>
+      )}
+
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
-        {state.loading && (
-          <div className="flex flex-col items-center justify-center py-12 text-bible-400">
-            <Loader2 className="h-5 w-5 animate-spin mb-2" />
-            <span className="text-xs">Generating outline...</span>
-          </div>
-        )}
+        {state.loading && <OutlineSkeleton />}
         
         {state.error && (
           <div className="text-center py-8">
@@ -78,19 +110,37 @@ export const OutlineGenerator: React.FC<OutlineGeneratorProps> = ({ scripture, l
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <List className="h-8 w-8 text-bible-300 mb-2" />
             <p className="text-sm text-bible-500">Select a structure and generate</p>
+            <p className="text-xs text-bible-400 mt-1">Choose Expository, Topical, or Narrative</p>
           </div>
         )}
 
         {state.data && (
           <div className="relative">
-            <button 
-              onClick={handleCopy}
-              className="absolute top-0 right-0 text-xs flex items-center gap-1 text-bible-400 hover:text-bible-600 transition-colors"
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Copied" : "Copy"}
-            </button>
-            <div className="prose prose-sm max-w-none prose-headings:text-bible-900 prose-headings:font-semibold prose-p:text-bible-600 prose-p:text-sm prose-li:text-bible-600 prose-li:text-sm">
+            {state.isDemo && (
+              <div className="flex items-center gap-1.5 mb-3">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                <span className="text-xs text-amber-600 font-medium">Demo Outline</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 absolute top-0 right-0">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-7 px-2 text-xs"
+                onClick={() => {/* TODO: Insert into sermon */}}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Use Outline
+              </Button>
+              <button 
+                onClick={handleCopy}
+                className="text-xs flex items-center gap-1 text-bible-400 hover:text-bible-600 transition-colors"
+              >
+                {copied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? "Copied" : "Copy"}
+              </button>
+            </div>
+            <div className="prose prose-sm max-w-none prose-headings:text-bible-900 prose-headings:font-semibold prose-p:text-bible-600 prose-p:text-sm prose-li:text-bible-600 prose-li:text-sm mt-8">
               <ReactMarkdown
                 components={{
                   h1: ({children}) => <h1 className="text-lg font-semibold text-bible-900 mb-4 pb-2 border-b border-bible-100">{children}</h1>,
