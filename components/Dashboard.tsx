@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SermonData } from '@/types';
 import { CommentarySynthesizer } from '@/components/CommentarySynthesizer';
 import { IllustrationFinder } from '@/components/IllustrationFinder';
@@ -24,6 +25,7 @@ import { AudioTranscription } from '@/components/AudioTranscription';
 import { SermonCoach } from '@/components/SermonCoach';
 import { PodiumMode } from '@/components/PodiumMode';
 import { ContentRepurposer } from '@/components/ContentRepurposer';
+import { SermonProgressRail, SermonStage } from '@/components/SermonProgressRail';
 import { 
   ChevronLeft, 
   BookOpen, 
@@ -40,7 +42,8 @@ import {
   LayoutList,
   Calendar,
   Presentation,
-  Sparkles
+  Sparkles,
+  Command
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { saveSermon, addSermonVersion, getSermonVersions, restoreSermonVersion, deleteSermonVersion, updateSermonTags, scheduleSermon, getScheduledSermons, removeScheduledSermon } from '@/services/storageService';
@@ -70,6 +73,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [scheduledSermons, setScheduledSermons] = useState<any[]>([]);
   const [showPodiumMode, setShowPodiumMode] = useState(false);
+  const [currentStage, setCurrentStage] = useState<SermonStage>('exegesis');
+  const [completedStages, setCompletedStages] = useState<SermonStage[]>([]);
+
+  const handleStageClick = (stage: SermonStage) => {
+    setCurrentStage(stage);
+    if (stage === 'exegesis') {
+      setActiveCategory('study');
+      setStudyTool('commentary');
+    } else if (stage === 'bigIdea') {
+      setActiveCategory('study');
+      setStudyTool('exegesis');
+    } else if (stage === 'outline') {
+      setRightTab('outline');
+    } else if (stage === 'manuscript') {
+      setRightTab('notes');
+    } else if (stage === 'podium') {
+      setShowPodiumMode(true);
+    }
+  };
+
+  const markStageComplete = (stage: SermonStage) => {
+    if (!completedStages.includes(stage)) {
+      setCompletedStages([...completedStages, stage]);
+    }
+  };
 
   useEffect(() => {
     setCurrentNotes(data.notes || '');
@@ -253,6 +281,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
                 {data.language}
               </span>
             </div>
+          </div>
+
+          {/* Sermon Progress Rail */}
+          <div className="mb-3">
+            <SermonProgressRail
+              currentStage={currentStage}
+              completedStages={completedStages}
+              onStageClick={handleStageClick}
+              variant="compact"
+            />
           </div>
 
           {/* Action Buttons */}
