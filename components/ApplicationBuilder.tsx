@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Target, Users, Heart, Briefcase, Home, Loader2, Plus, Sparkles, Info, Copy, Check } from 'lucide-react';
+import { Target, Users, Heart, Briefcase, Home, Loader2, Plus, Copy, Check, AlertCircle } from 'lucide-react';
 import { callMegaLLM } from '@/services/megaLLMService';
-import { getDemoApplications } from '@/services/demoService';
 import { Language } from '@/types';
 import { CardSkeleton } from '@/components/ui/Skeleton';
 
@@ -19,7 +18,6 @@ interface Application {
 
 interface ApplicationState {
   data: Application[];
-  isDemo: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -27,7 +25,6 @@ interface ApplicationState {
 export const ApplicationBuilder: React.FC<ApplicationBuilderProps> = ({ scripture, language }) => {
   const [state, setState] = useState<ApplicationState>({
     data: [],
-    isDemo: false,
     loading: false,
     error: null,
   });
@@ -57,7 +54,7 @@ Return ONLY the JSON array, no other text.`;
         { role: 'system', content: 'You are a helpful assistant that creates practical sermon applications. Always respond with valid JSON.' },
         { role: 'user', content: prompt }
       ], { response_format: { type: 'json_object' } });
-      
+
       // Parse the JSON response
       let result: Application[];
       try {
@@ -68,22 +65,11 @@ Return ONLY the JSON array, no other text.`;
         const match = response.match(/\[[\s\S]*\]/);
         result = match ? JSON.parse(match[0]) : [];
       }
-      
-      setState({ data: result, isDemo: false, loading: false, error: null });
+
+      setState({ data: result, loading: false, error: null });
     } catch (error) {
-      // Fall back to demo mode with beautiful mock content
-      try {
-        const demoResults = await getDemoApplications(scripture);
-        // Map demo results to match Application type
-        const mappedResults: Application[] = demoResults.map(item => ({
-          audience: item.audience,
-          application: item.application,
-          actionStep: item.actionStep,
-        }));
-        setState({ data: mappedResults, isDemo: true, loading: false, error: null });
-      } catch (demoErr) {
-        setState({ data: [], isDemo: false, loading: false, error: "Failed to generate applications." });
-      }
+      console.error('Application generation error:', error);
+      setState({ data: [], loading: false, error: "Failed to generate applications. Please check your API key and try again." });
     }
   };
 
@@ -106,45 +92,33 @@ Return ONLY the JSON array, no other text.`;
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="px-4 py-2 border-b border-bible-100 flex items-center justify-between shrink-0 bg-bible-50/50">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-bible-500">Practical Applications</span>
-          {state.isDemo && (
-            <span className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-              <Sparkles className="h-3 w-3" />
-              Demo
-            </span>
-          )}
-        </div>
+        <span className="text-xs font-medium text-bible-500">Practical Applications</span>
         {state.data.length > 0 && (
           <Button variant="ghost" size="sm" onClick={handleGenerate} disabled={state.loading} className="h-7 px-2 text-xs">
             {state.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'More'}
           </Button>
         )}
       </div>
-      
-      {/* Demo mode banner */}
-      {state.isDemo && (
-        <div className="px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 flex items-center gap-2">
-          <Info className="h-4 w-4 text-amber-600" />
-          <span className="text-xs text-amber-700">
-            Viewing demo applications. <button className="underline font-medium hover:text-amber-900">Connect AI</button> to unlock personalized results.
-          </span>
-        </div>
-      )}
-      
+
       <div className="flex-1 overflow-y-auto p-4">
+        {state.error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2 mb-4">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{state.error}</p>
+              <Button variant="outline" size="sm" onClick={handleGenerate} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
         {state.loading && state.data.length === 0 ? (
           <div className="space-y-3">
             <CardSkeleton lines={3} />
             <CardSkeleton lines={3} />
             <CardSkeleton lines={3} />
           </div>
-        ) : state.error ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-red-600 mb-2">{state.error}</p>
-            <Button variant="outline" size="sm" onClick={handleGenerate}>Retry</Button>
-          </div>
-        ) : state.data.length === 0 ? (
+        ) : state.data.length === 0 && !state.error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Target className="h-8 w-8 text-bible-300 mb-3" />
             <p className="text-sm text-bible-500 mb-1">Generate practical applications</p>

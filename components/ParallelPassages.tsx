@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { GitCompare, Loader2 } from 'lucide-react';
-import { getParallelPassages } from '@/services/geminiService';
+import { GitCompare, Loader2, AlertCircle } from 'lucide-react';
+import { getParallelPassages } from '@/services/megaLLMService';
 import { Language } from '@/types';
 
 interface ParallelPassagesProps {
@@ -18,14 +18,17 @@ interface Parallel {
 export const ParallelPassages: React.FC<ParallelPassagesProps> = ({ scripture, language }) => {
   const [parallels, setParallels] = useState<Parallel[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
+    setError(null);
     try {
       const result = await getParallelPassages(scripture, language);
       setParallels(result);
     } catch (error) {
       console.error('Error getting parallel passages:', error);
+      setError('Failed to find parallel passages. Please check your API key and try again.');
     } finally {
       setLoading(false);
     }
@@ -42,7 +45,18 @@ export const ParallelPassages: React.FC<ParallelPassagesProps> = ({ scripture, l
         )}
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {parallels.length === 0 ? (
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2 mb-4">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={handleGenerate} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        {parallels.length === 0 && !error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <GitCompare className="h-8 w-8 text-bible-300 mb-3" />
             <p className="text-sm text-bible-500 mb-4">Find parallel passages</p>
@@ -51,7 +65,7 @@ export const ParallelPassages: React.FC<ParallelPassagesProps> = ({ scripture, l
               {loading ? 'Finding...' : 'Find'}
             </Button>
           </div>
-        ) : (
+        ) : parallels.length > 0 ? (
           <div className="space-y-2">
             {parallels.map((parallel, idx) => (
               <div key={idx} className="p-3 rounded-md border border-bible-200 bg-white">
@@ -65,7 +79,7 @@ export const ParallelPassages: React.FC<ParallelPassagesProps> = ({ scripture, l
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

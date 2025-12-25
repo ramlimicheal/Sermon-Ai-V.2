@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Calendar, Loader2, Plus, BookOpen } from 'lucide-react';
-import { generateSermonSeries } from '@/services/geminiService';
+import { Calendar, Loader2, Plus, BookOpen, AlertCircle } from 'lucide-react';
+import { generateSermonSeries } from '@/services/megaLLMService';
 import { Language } from '@/types';
 
 interface SermonSeriesBuilderProps {
@@ -20,6 +20,7 @@ interface SeriesWeek {
 export const SermonSeriesBuilder: React.FC<SermonSeriesBuilderProps> = ({ language }) => {
   const [series, setSeries] = useState<SeriesWeek[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState('');
   const [weeks, setWeeks] = useState(4);
   const [showForm, setShowForm] = useState(true);
@@ -27,12 +28,14 @@ export const SermonSeriesBuilder: React.FC<SermonSeriesBuilderProps> = ({ langua
   const handleGenerate = async () => {
     if (!theme.trim()) return;
     setLoading(true);
+    setError(null);
     try {
       const result = await generateSermonSeries(theme, weeks, language);
       setSeries(result);
       setShowForm(false);
     } catch (error) {
       console.error('Error generating sermon series:', error);
+      setError('Failed to generate sermon series. Please check your API key and try again.');
     } finally {
       setLoading(false);
     }
@@ -41,6 +44,17 @@ export const SermonSeriesBuilder: React.FC<SermonSeriesBuilderProps> = ({ langua
   return (
     <Card title="Sermon Series Builder" icon={<Calendar className="h-5 w-5" />}>
       <div className="space-y-4">
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={handleGenerate} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
         {showForm ? (
           <div className="space-y-4">
             <div className="text-center py-4">

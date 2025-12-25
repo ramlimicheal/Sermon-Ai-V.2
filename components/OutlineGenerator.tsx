@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { generateSermonContent } from '@/services/megaLLMService';
-import { getDemoOutline } from '@/services/demoService';
-import { OutlineType, GenerationState, Language } from '@/types';
-import { List, Wand2, Copy, Check, Loader2, Sparkles, Info, Plus } from 'lucide-react';
+import { OutlineType, Language } from '@/types';
+import { List, Wand2, Copy, Check, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { OutlineSkeleton } from '@/components/ui/Skeleton';
 
@@ -14,7 +13,6 @@ interface OutlineGeneratorProps {
 
 interface OutlineState {
   data: string | null;
-  isDemo: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -23,37 +21,19 @@ export const OutlineGenerator: React.FC<OutlineGeneratorProps> = ({ scripture, l
   const [type, setType] = useState<OutlineType>(OutlineType.EXPOSITORY);
   const [state, setState] = useState<OutlineState>({
     data: null,
-    isDemo: false,
     loading: false,
     error: null,
   });
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
-    setState({ data: null, isDemo: false, loading: true, error: null });
+    setState({ data: null, loading: true, error: null });
     try {
       const result = await generateSermonContent('outline', scripture, language, type);
-      setState({ data: result, isDemo: false, loading: false, error: null });
+      setState({ data: result, loading: false, error: null });
     } catch (err) {
-      // Fall back to demo mode with beautiful mock content
-      try {
-        const demoResult = await getDemoOutline(scripture, type);
-        // Convert demo outline object to markdown string
-        const markdownContent = `# ${demoResult.title}
-
-## Introduction
-${demoResult.introduction}
-
-${demoResult.points.map((point, idx) => `## ${idx + 1}. ${point.title}
-${point.scripture ? `*${point.scripture}*\n\n` : ''}${point.content}
-${point.application ? `\n**Application:** ${point.application}` : ''}`).join('\n\n')}
-
-## Conclusion
-${demoResult.conclusion}`;
-        setState({ data: markdownContent, isDemo: true, loading: false, error: null });
-      } catch (demoErr) {
-        setState({ data: null, isDemo: false, loading: false, error: "Failed to generate outline." });
-      }
+      console.error('Outline generation error:', err);
+      setState({ data: null, loading: false, error: "Failed to generate outline. Please check your API key and try again." });
     }
   };
 
@@ -85,16 +65,6 @@ ${demoResult.conclusion}`;
         </div>
       </div>
 
-      {/* Demo mode banner */}
-      {state.isDemo && (
-        <div className="px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 flex items-center gap-2">
-          <Info className="h-4 w-4 text-amber-600" />
-          <span className="text-xs text-amber-700">
-            Viewing demo outline. <button className="underline font-medium hover:text-amber-900">Connect AI</button> to unlock live, personalized results.
-          </span>
-        </div>
-      )}
-
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         {state.loading && <OutlineSkeleton />}
@@ -116,12 +86,6 @@ ${demoResult.conclusion}`;
 
         {state.data && (
           <div className="relative">
-            {state.isDemo && (
-              <div className="flex items-center gap-1.5 mb-3">
-                <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-                <span className="text-xs text-amber-600 font-medium">Demo Outline</span>
-              </div>
-            )}
             <div className="flex items-center gap-2 absolute top-0 right-0">
               <Button 
                 variant="ghost" 

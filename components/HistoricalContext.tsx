@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { MapPin, Calendar, Users, Landmark, Loader2, BookOpen } from 'lucide-react';
-import { getHistoricalContext } from '@/services/geminiService';
+import { MapPin, Calendar, Users, Landmark, Loader2, BookOpen, AlertCircle } from 'lucide-react';
+import { getHistoricalContext } from '@/services/megaLLMService';
 import { Language } from '@/types';
 
 interface HistoricalContextProps {
@@ -20,14 +20,17 @@ interface ContextData {
 export const HistoricalContext: React.FC<HistoricalContextProps> = ({ scripture, language }) => {
   const [context, setContext] = useState<ContextData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
+    setError(null);
     try {
       const result = await getHistoricalContext(scripture, language);
       setContext(result);
     } catch (error) {
       console.error('Error getting historical context:', error);
+      setError('Failed to generate historical context. Please check your API key and try again.');
     } finally {
       setLoading(false);
     }
@@ -52,7 +55,18 @@ export const HistoricalContext: React.FC<HistoricalContextProps> = ({ scripture,
         )}
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {!context ? (
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2 mb-4">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={handleGenerate} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        {!context && !error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Landmark className="h-8 w-8 text-bible-300 mb-3" />
             <p className="text-sm text-bible-500 mb-4">Understand the historical context</p>
@@ -61,7 +75,7 @@ export const HistoricalContext: React.FC<HistoricalContextProps> = ({ scripture,
               {loading ? 'Loading...' : 'Generate'}
             </Button>
           </div>
-        ) : (
+        ) : context ? (
           <div className="space-y-2">
             {sections.map((section, idx) => (
               <div key={idx} className="p-3 rounded-md border border-bible-200 bg-white">
@@ -73,7 +87,7 @@ export const HistoricalContext: React.FC<HistoricalContextProps> = ({ scripture,
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

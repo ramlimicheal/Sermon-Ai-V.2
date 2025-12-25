@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { BookOpen, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
-import { getTheologicalPerspectives } from '@/services/geminiService';
+import { BookOpen, Loader2, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { getTheologicalPerspectives } from '@/services/megaLLMService';
 import { Language } from '@/types';
 
 interface TheologicalPerspectivesProps {
@@ -18,15 +18,18 @@ interface Perspective {
 export const TheologicalPerspectives: React.FC<TheologicalPerspectivesProps> = ({ scripture, language }) => {
   const [perspectives, setPerspectives] = useState<Perspective[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
+    setError(null);
     try {
       const result = await getTheologicalPerspectives(scripture, language);
       setPerspectives(result);
     } catch (error) {
       console.error('Error getting theological perspectives:', error);
+      setError('Failed to generate theological perspectives. Please check your API key and try again.');
     } finally {
       setLoading(false);
     }
@@ -43,7 +46,18 @@ export const TheologicalPerspectives: React.FC<TheologicalPerspectivesProps> = (
         )}
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {perspectives.length === 0 ? (
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2 mb-4">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={handleGenerate} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        {perspectives.length === 0 && !error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <BookOpen className="h-8 w-8 text-bible-300 mb-3" />
             <p className="text-sm text-bible-500 mb-4">Explore different interpretations</p>
@@ -52,7 +66,7 @@ export const TheologicalPerspectives: React.FC<TheologicalPerspectivesProps> = (
               {loading ? 'Loading...' : 'Generate'}
             </Button>
           </div>
-        ) : (
+        ) : perspectives.length > 0 ? (
           <div className="space-y-2">
             {perspectives.map((perspective, idx) => {
               const isExpanded = expandedIndex === idx;
@@ -77,7 +91,7 @@ export const TheologicalPerspectives: React.FC<TheologicalPerspectivesProps> = (
               );
             })}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

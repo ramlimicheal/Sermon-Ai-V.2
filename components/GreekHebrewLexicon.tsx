@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Languages, Search, Loader2 } from 'lucide-react';
-import { analyzeOriginalLanguages } from '@/services/geminiService';
+import { Languages, Search, Loader2, AlertCircle } from 'lucide-react';
+import { getGreekHebrewAnalysis } from '@/services/megaLLMService';
 import { Language } from '@/types';
 
 interface GreekHebrewLexiconProps {
@@ -20,14 +20,17 @@ interface WordStudy {
 export const GreekHebrewLexicon: React.FC<GreekHebrewLexiconProps> = ({ scripture, language }) => {
   const [wordStudies, setWordStudies] = useState<WordStudy[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAnalyze = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const result = await analyzeOriginalLanguages(scripture, language);
+      const result = await getGreekHebrewAnalysis(scripture, language);
       setWordStudies(result);
     } catch (error) {
       console.error('Error analyzing original languages:', error);
+      setError('Failed to analyze original languages. Please check your API key and try again.');
     } finally {
       setLoading(false);
     }
@@ -44,7 +47,18 @@ export const GreekHebrewLexicon: React.FC<GreekHebrewLexiconProps> = ({ scriptur
         )}
       </div>
       <div className="flex-1 overflow-y-auto p-4">
-        {wordStudies.length === 0 ? (
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2 mb-4">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={handleAnalyze} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        {wordStudies.length === 0 && !error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Languages className="h-8 w-8 text-bible-300 mb-3" />
             <p className="text-sm text-bible-500 mb-4">Analyze key words in original languages</p>
@@ -53,7 +67,7 @@ export const GreekHebrewLexicon: React.FC<GreekHebrewLexiconProps> = ({ scriptur
               {loading ? 'Analyzing...' : 'Analyze'}
             </Button>
           </div>
-        ) : (
+        ) : wordStudies.length > 0 ? (
           <div className="space-y-2">
             {wordStudies.map((study, idx) => (
               <div key={idx} className="p-3 rounded-md border border-bible-200 bg-white hover:border-bible-300 transition-colors">
@@ -71,7 +85,7 @@ export const GreekHebrewLexicon: React.FC<GreekHebrewLexiconProps> = ({ scriptur
               </div>
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

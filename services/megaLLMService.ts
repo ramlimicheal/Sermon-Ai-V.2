@@ -241,3 +241,254 @@ For each reference include:
 
   return callMegaLLM(messages, { temperature: 0.7 });
 };
+
+export const generateEngagementContent = async (
+  scripture: string,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any[]> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language.'
+    : 'Output in English.';
+
+  const prompt = `Generate 4 engagement tools for a sermon on "${scripture}" to help the pastor connect with the audience.
+${languageInstruction}
+
+Include:
+1. An Ice Breaker (fun opening)
+2. A Humorous Anecdote or Saying related to the topic
+3. An Interactive Question to ask the audience
+4. A Powerful Quote
+
+Return a JSON array with exactly 4 objects, each having:
+- category: One of ["Ice Breaker", "Humor", "Interactive Question", "Quote"]
+- content: The actual content
+
+Return ONLY the JSON array, no other text.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a helpful assistant that creates engaging sermon content. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7 });
+
+  try {
+    const parsed = JSON.parse(response);
+    return Array.isArray(parsed) ? parsed : parsed.items || [];
+  } catch {
+    const match = response.match(/\[[\s\S]*\]/);
+    return match ? JSON.parse(match[0]) : [];
+  }
+};
+
+export const getExegeticalNotes = async (
+  scripture: string,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language.'
+    : 'Output in English.';
+
+  const prompt = `Provide advanced exegetical notes for "${scripture}".
+${languageInstruction}
+
+Include these sections:
+- literaryStructure: Literary structure and genre analysis
+- grammaticalInsights: Key grammatical observations
+- textualVariants: Significant textual variants (if any)
+- theologicalThemes: Main theological themes
+- homileticalBridges: How to preach this passage effectively
+
+Return as a JSON object with these exact keys.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a biblical scholar providing exegetical notes. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7 });
+  return JSON.parse(response);
+};
+
+export const getGreekHebrewAnalysis = async (
+  scripture: string,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any[]> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language except for Greek/Hebrew characters.'
+    : 'Output in English.';
+
+  const prompt = `Analyze the key Greek or Hebrew words in "${scripture}".
+${languageInstruction}
+
+Provide 3-5 significant words with:
+- word: Original word (Greek/Hebrew characters)
+- transliteration: English transliteration
+- strongsNumber: Strong's concordance number
+- definition: Concise definition
+- usage: How it's used in this context
+
+Return as JSON array.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a biblical languages expert. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7 });
+
+  try {
+    const parsed = JSON.parse(response);
+    return Array.isArray(parsed) ? parsed : parsed.words || [];
+  } catch {
+    const match = response.match(/\[[\s\S]*\]/);
+    return match ? JSON.parse(match[0]) : [];
+  }
+};
+
+export const getHistoricalContext = async (
+  scripture: string,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language.'
+    : 'Output in English.';
+
+  const prompt = `Provide comprehensive historical context for "${scripture}".
+${languageInstruction}
+
+Include these sections:
+- timePeriod: Time period when written
+- culturalBackground: Cultural context
+- geographicalSetting: Geographic location and setting
+- politicalContext: Political situation
+- religiousContext: Religious environment
+
+Return as a JSON object with these exact keys.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a biblical historian. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7 });
+  return JSON.parse(response);
+};
+
+export const getParallelPassages = async (
+  scripture: string,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any[]> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language.'
+    : 'Output in English.';
+
+  const prompt = `Find parallel passages for "${scripture}" across the Bible.
+${languageInstruction}
+
+Include:
+- Gospel parallels (if applicable)
+- Old Testament/New Testament connections
+- Thematic parallels
+
+For each provide:
+- reference: Scripture reference
+- relationshipType: Type of relationship (parallel, fulfillment, echo, contrast, thematic)
+- explanation: Brief explanation of the connection
+
+Return as JSON array with 5-7 references.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a biblical cross-reference expert. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7 });
+
+  try {
+    const parsed = JSON.parse(response);
+    return Array.isArray(parsed) ? parsed : parsed.passages || [];
+  } catch {
+    const match = response.match(/\[[\s\S]*\]/);
+    return match ? JSON.parse(match[0]) : [];
+  }
+};
+
+export const generateSermonSeries = async (
+  theme: string,
+  weeks: number,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any[]> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language.'
+    : 'Output in English.';
+
+  const prompt = `Create a ${weeks}-week sermon series on the theme: "${theme}".
+${languageInstruction}
+
+For each week provide:
+- week: Week number (1, 2, 3, etc.)
+- title: Sermon title for that week
+- scripture: Main scripture passage
+- keyPoints: Array of 3-4 key points
+- progression: How this builds on previous weeks
+
+Return as JSON array with ${weeks} objects.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a sermon planning expert. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7, max_tokens: 6000 });
+
+  try {
+    const parsed = JSON.parse(response);
+    return Array.isArray(parsed) ? parsed : parsed.series || [];
+  } catch {
+    const match = response.match(/\[[\s\S]*\]/);
+    return match ? JSON.parse(match[0]) : [];
+  }
+};
+
+export const getTheologicalPerspectives = async (
+  scripture: string,
+  language: 'English' | 'Tamil' = 'English'
+): Promise<any[]> => {
+  const languageInstruction = language === 'Tamil'
+    ? 'Output ALL user-facing text content in Tamil language.'
+    : 'Output in English.';
+
+  const prompt = `Provide interpretations of "${scripture}" from different Christian traditions.
+${languageInstruction}
+
+Include these traditions:
+- Reformed
+- Catholic
+- Orthodox
+- Pentecostal
+- Baptist
+- Methodist
+
+For each provide:
+- tradition: Tradition name
+- interpretation: Their interpretation of the passage
+- keyEmphasis: What they emphasize in this passage
+
+Return as JSON array.`;
+
+  const messages: ChatMessage[] = [
+    { role: 'system', content: 'You are a theological expert familiar with various Christian traditions. Always respond with valid JSON.' },
+    { role: 'user', content: prompt }
+  ];
+
+  const response = await callMegaLLM(messages, { temperature: 0.7 });
+
+  try {
+    const parsed = JSON.parse(response);
+    return Array.isArray(parsed) ? parsed : parsed.perspectives || [];
+  } catch {
+    const match = response.match(/\[[\s\S]*\]/);
+    return match ? JSON.parse(match[0]) : [];
+  }
+};

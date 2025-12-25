@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { GraduationCap, Loader2, BookMarked, FileText, Layers, Lightbulb, Sparkles, Info } from 'lucide-react';
-import { getExegeticalNotes } from '@/services/geminiService';
-import { getDemoExegeticalNotes } from '@/services/demoService';
+import { GraduationCap, Loader2, BookMarked, FileText, Layers, Lightbulb, AlertCircle } from 'lucide-react';
+import { getExegeticalNotes } from '@/services/megaLLMService';
 import { Language } from '@/types';
 
 interface ExegeticalNotesProps {
@@ -22,23 +21,17 @@ interface ExegesisData {
 export const ExegeticalNotes: React.FC<ExegeticalNotesProps> = ({ scripture, language }) => {
   const [notes, setNotes] = useState<ExegesisData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isDemo, setIsDemo] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = async () => {
     setLoading(true);
-    setIsDemo(false);
+    setError(null);
     try {
       const result = await getExegeticalNotes(scripture, language);
       setNotes(result);
     } catch (error) {
       console.error('Error getting exegetical notes:', error);
-      try {
-        const demoResult = await getDemoExegeticalNotes(scripture);
-        setNotes(demoResult);
-        setIsDemo(true);
-      } catch (demoErr) {
-        console.error('Failed to load demo data');
-      }
+      setError('Failed to generate exegetical notes. Please check your API key and try again.');
     } finally {
       setLoading(false);
     }
@@ -46,16 +39,19 @@ export const ExegeticalNotes: React.FC<ExegeticalNotesProps> = ({ scripture, lan
 
   return (
     <Card title="Exegetical Notes" icon={<GraduationCap className="h-5 w-5" />}>
-      {isDemo && (
-        <div className="px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 flex items-center gap-2 -mx-6 -mt-4 mb-4">
-          <Info className="h-4 w-4 text-amber-600" />
-          <span className="text-xs text-amber-700">
-            Viewing demo exegetical notes. <button className="underline font-medium hover:text-amber-900">Connect AI</button> to unlock live results.
-          </span>
-        </div>
-      )}
       <div className="space-y-4">
-        {!notes ? (
+        {error && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm text-red-700">{error}</p>
+              <Button variant="outline" size="sm" onClick={handleGenerate} className="mt-2">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+        {!notes && !error ? (
           <div className="text-center py-8">
             <div className="bg-bible-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <GraduationCap className="h-8 w-8 text-bible-600" />
@@ -75,7 +71,7 @@ export const ExegeticalNotes: React.FC<ExegeticalNotesProps> = ({ scripture, lan
               )}
             </Button>
           </div>
-        ) : (
+        ) : notes ? (
           <div className="space-y-4">
             <div className="p-4 bg-gradient-to-br from-purple-50 to-bible-50 rounded-lg border border-purple-200">
               <div className="flex items-center gap-2 mb-3">
@@ -122,7 +118,7 @@ export const ExegeticalNotes: React.FC<ExegeticalNotesProps> = ({ scripture, lan
               Regenerate
             </Button>
           </div>
-        )}
+        ) : null}
       </div>
     </Card>
   );
