@@ -1,4 +1,4 @@
-const MEGALLM_API_KEY = 'sk-mega-49931f96a2f99590f5f9ed52b12e1b23cdab0f01f5c8074ce58d43cafb6d7fbc';
+const MEGALLM_API_KEY = import.meta.env.VITE_MEGALLM_API_KEY || '';
 const MEGALLM_BASE_URL = 'https://ai.megallm.io/v1';
 
 interface ChatMessage {

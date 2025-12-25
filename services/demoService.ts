@@ -233,8 +233,138 @@ export const getDemoGreekHebrew = async (scripture: string): Promise<any[]> => {
   ];
 };
 
+export const getDemoEngagement = async (scripture: string): Promise<any[]> => {
+  await delay(500);
+
+  return [
+    {
+      category: "Ice Breaker",
+      content: "Imagine you're stranded on a desert island and can only bring one book besides the Bible. What would it be and why? Now, what if I told you the passage we're studying today contains wisdom more valuable than any library?",
+    },
+    {
+      category: "Humor",
+      content: "A pastor once said, 'I used to think I had all the answers about this passage... then I actually read it!' Sometimes the most profound truths hide in plain sight.",
+    },
+    {
+      category: "Interactive Question",
+      content: "Before we dive in, raise your hand if you've ever felt confused about what God is really asking of you. Keep your hand up if you're hoping this passage will give you clarity. Good news—you're in the right place!",
+    },
+    {
+      category: "Quote",
+      content: '"The Bible is not an end in itself, but a means to bring us to an intimate and satisfying knowledge of God." - J.I. Packer. Today, we encounter God through these ancient yet timeless words.',
+    },
+  ];
+};
+
+export const getDemoExegeticalNotes = async (scripture: string): Promise<any> => {
+  await delay(700);
+
+  return {
+    literaryStructure: "This passage follows a chiastic structure (ABCBA pattern), with the central theme emphasized at the pivot point. The genre is didactic narrative, combining instruction with storytelling to make abstract concepts concrete. The parallelism throughout creates a rhythmic flow that aids memory and emphasizes key contrasts.",
+    grammaticalInsights: "The original language uses a present-tense verb here, indicating ongoing action rather than a one-time event. The conjunction ('therefore') signals a crucial logical connection to the preceding argument. Notice the emphatic pronoun placement—it stresses personal responsibility and individual choice.",
+    textualVariants: "Most manuscripts agree, though some Western texts add a clarifying phrase. The earlier manuscripts (including P46 and Codex Vaticanus) omit this addition, suggesting it was a later scribal explanation. This doesn't change the core meaning but affects nuance.",
+    theologicalThemes: "Central themes include: (1) Divine sovereignty paired with human responsibility, (2) The already-not-yet tension of God's kingdom, (3) Community identity versus individualism, (4) Grace as both gift and transformation. These themes interconnect throughout the passage.",
+    homileticalBridges: "To preach this effectively: (1) Start with the tension your congregation feels between faith and doubt, (2) Show how the passage addresses that tension without dissolving it, (3) Give concrete examples of what obedience looks like today, (4) End with hope grounded in God's character, not our performance.",
+  };
+};
+
+export const getDemoTheologicalPerspectives = async (scripture: string): Promise<any[]> => {
+  await delay(600);
+
+  return [
+    {
+      tradition: "Reformed",
+      interpretation: "Emphasizes God's sovereignty and prevenient grace. This passage demonstrates that salvation is entirely God's work from start to finish, with human response being itself a gift of grace.",
+      keyEmphasis: "The priority of divine election and the perseverance of the saints",
+    },
+    {
+      tradition: "Catholic",
+      interpretation: "Highlights the cooperation between divine grace and human free will. The passage shows how God invites our participation in his redemptive work through the sacraments and the church.",
+      keyEmphasis: "The role of ongoing sanctification and the communion of saints",
+    },
+    {
+      tradition: "Orthodox",
+      interpretation: "Sees this as part of theosis—our participation in the divine nature. The passage reveals how we are transformed from glory to glory through union with Christ in the body of the church.",
+      keyEmphasis: "Mystical union with God and the transformative power of worship",
+    },
+    {
+      tradition: "Pentecostal",
+      interpretation: "Emphasizes the immediate presence and power of the Holy Spirit. This passage demonstrates how the Spirit empowers believers for bold witness and miraculous signs.",
+      keyEmphasis: "Spiritual gifts, divine healing, and experiential faith",
+    },
+    {
+      tradition: "Baptist",
+      interpretation: "Stresses personal conversion and believer's baptism. The passage calls for an individual decision to follow Christ, followed by public identification with his death and resurrection.",
+      keyEmphasis: "Autonomy of the local church and priesthood of all believers",
+    },
+    {
+      tradition: "Methodist",
+      interpretation: "Highlights prevenient, justifying, and sanctifying grace. This passage shows how God's love is offered to all and how we grow in holiness through grace-enabled effort.",
+      keyEmphasis: "Universal atonement and social holiness",
+    },
+  ];
+};
+
+export const getDemoParallelPassages = async (scripture: string): Promise<any[]> => {
+  await delay(500);
+
+  return [
+    {
+      reference: "Matthew 5:1-12",
+      relationshipType: "parallel",
+      explanation: "Luke's version of the Beatitudes shares the same core teaching with variations that reveal different theological emphases and audiences.",
+    },
+    {
+      reference: "Isaiah 53:4-6",
+      relationshipType: "fulfillment",
+      explanation: "The New Testament passage fulfills this Old Testament prophecy about the suffering servant who bears our transgressions.",
+    },
+    {
+      reference: "Psalm 22:1",
+      relationshipType: "echo",
+      explanation: "Jesus quotes this psalm from the cross, creating an intertextual link that deepens our understanding of both passages.",
+    },
+    {
+      reference: "James 2:14-26",
+      relationshipType: "theological development",
+      explanation: "James develops the practical implications of the faith discussed in Romans, showing how genuine faith produces works.",
+    },
+    {
+      reference: "1 Corinthians 13:4-7",
+      relationshipType: "thematic",
+      explanation: "Both passages explore the nature of godly love, with different metaphors pointing to the same divine reality.",
+    },
+  ];
+};
+
+export const getDemoSermonSeries = async (theme: string, weeks: number): Promise<any[]> => {
+  await delay(800);
+
+  const seriesData = [];
+  const baseTheme = theme || "Faith and Life";
+
+  for (let i = 1; i <= Math.min(weeks, 8); i++) {
+    seriesData.push({
+      week: i,
+      title: `${baseTheme}: Week ${i} - Building on the Foundation`,
+      scripture: `Selected passages on ${baseTheme}`,
+      keyPoints: [
+        `Understanding the biblical foundation of ${baseTheme}`,
+        `Practical application in daily life`,
+        `Overcoming common obstacles`,
+        `Living out our faith in community`,
+      ],
+      progression: i === 1
+        ? `This opening week lays the foundation by exploring what Scripture says about ${baseTheme}. We establish core principles that will support everything that follows.`
+        : `Building on week ${i-1}, we now explore how these truths transform specific areas of our lives. Each week adds another layer of understanding and practice.`,
+    });
+  }
+
+  return seriesData;
+};
+
 export const isDemoMode = (): boolean => {
-  const apiKey = process.env.API_KEY || '';
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
   return !apiKey || apiKey.length < 10;
 };
 

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { GraduationCap, Loader2, BookMarked, FileText, Layers, Lightbulb } from 'lucide-react';
+import { GraduationCap, Loader2, BookMarked, FileText, Layers, Lightbulb, Sparkles, Info } from 'lucide-react';
 import { getExegeticalNotes } from '@/services/geminiService';
+import { getDemoExegeticalNotes } from '@/services/demoService';
 import { Language } from '@/types';
 
 interface ExegeticalNotesProps {
@@ -21,14 +22,23 @@ interface ExegesisData {
 export const ExegeticalNotes: React.FC<ExegeticalNotesProps> = ({ scripture, language }) => {
   const [notes, setNotes] = useState<ExegesisData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
 
   const handleGenerate = async () => {
     setLoading(true);
+    setIsDemo(false);
     try {
       const result = await getExegeticalNotes(scripture, language);
       setNotes(result);
     } catch (error) {
       console.error('Error getting exegetical notes:', error);
+      try {
+        const demoResult = await getDemoExegeticalNotes(scripture);
+        setNotes(demoResult);
+        setIsDemo(true);
+      } catch (demoErr) {
+        console.error('Failed to load demo data');
+      }
     } finally {
       setLoading(false);
     }
@@ -36,6 +46,14 @@ export const ExegeticalNotes: React.FC<ExegeticalNotesProps> = ({ scripture, lan
 
   return (
     <Card title="Exegetical Notes" icon={<GraduationCap className="h-5 w-5" />}>
+      {isDemo && (
+        <div className="px-4 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100 flex items-center gap-2 -mx-6 -mt-4 mb-4">
+          <Info className="h-4 w-4 text-amber-600" />
+          <span className="text-xs text-amber-700">
+            Viewing demo exegetical notes. <button className="underline font-medium hover:text-amber-900">Connect AI</button> to unlock live results.
+          </span>
+        </div>
+      )}
       <div className="space-y-4">
         {!notes ? (
           <div className="text-center py-8">
