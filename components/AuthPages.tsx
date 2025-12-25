@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  BookOpen, 
-  ArrowRight, 
-  Mail, 
-  Lock, 
-  User, 
-  Eye, 
+import {
+  BookOpen,
+  ArrowRight,
+  Mail,
+  Lock,
+  User,
+  Eye,
   EyeOff,
   Check,
   Church,
@@ -16,9 +16,11 @@ import {
   Download,
   Star,
   Shield,
-  Zap
+  Zap,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { authService } from '@/services/authService';
 
 interface AuthPagesProps {
   onComplete: () => void;
@@ -28,6 +30,8 @@ interface AuthPagesProps {
 export const AuthPages: React.FC<AuthPagesProps> = ({ onComplete, initialMode = 'signup' }) => {
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -35,9 +39,51 @@ export const AuthPages: React.FC<AuthPagesProps> = ({ onComplete, initialMode = 
     church: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete();
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (mode === 'signup') {
+        const { error: signUpError } = await authService.signUp({
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          church_name: formData.church,
+        });
+
+        if (signUpError) {
+          setError(signUpError.message);
+          setLoading(false);
+          return;
+        }
+      } else {
+        const { error: signInError } = await authService.signIn({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          setError(signInError.message);
+          setLoading(false);
+          return;
+        }
+      }
+
+      onComplete();
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    const { error } = await authService.signInWithGoogle();
+    if (error) {
+      setError(error.message);
+    }
   };
 
   const benefits = [
@@ -298,12 +344,32 @@ export const AuthPages: React.FC<AuthPagesProps> = ({ onComplete, initialMode = 
               </div>
             )}
 
-            <Button 
-              type="submit" 
-              className="w-full bg-stone-900 hover:bg-stone-800 py-3 text-base"
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-stone-900 hover:bg-stone-800 py-3 text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {mode === 'signup' ? 'Start Free Trial' : 'Sign In'}
-              <ArrowRight className="ml-2 h-4 w-4" />
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  {mode === 'signup' ? 'Creating account...' : 'Signing in...'}
+                </span>
+              ) : (
+                <>
+                  {mode === 'signup' ? 'Start Free Trial' : 'Sign In'}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
             </Button>
 
             {mode === 'signup' && (
@@ -325,7 +391,12 @@ export const AuthPages: React.FC<AuthPagesProps> = ({ onComplete, initialMode = 
 
           {/* Social Login */}
           <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>

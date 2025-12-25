@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getProfile, saveProfile } from '@/services/storageService';
+import { getProfile, saveProfile } from '@/services/supabaseStorageService';
 import { UserProfile as UserProfileType } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,16 +8,37 @@ import { User, Church, Save, Mail, MapPin, Globe, Calendar, Award, BookOpen, Use
 export const UserProfile: React.FC = () => {
   const [profile, setProfile] = useState<UserProfileType>({ name: '', churchName: '' });
   const [isSaved, setIsSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    setProfile(getProfile());
+    loadProfile();
   }, []);
 
-  const handleSave = (e: React.FormEvent) => {
+  const loadProfile = async () => {
+    try {
+      const profileData = await getProfile();
+      setProfile(profileData);
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    saveProfile(profile);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    setSaving(true);
+    try {
+      await saveProfile(profile);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -80,8 +101,20 @@ export const UserProfile: React.FC = () => {
               </div>
 
               <div className="pt-4 flex items-center gap-3 border-t border-bible-100">
-                <Button type="submit">
-                  <Save className="h-4 w-4 mr-2" /> Save Changes
+                <Button type="submit" disabled={saving}>
+                  {saving ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" /> Save Changes
+                    </>
+                  )}
                 </Button>
                 {isSaved && (
                   <span className="text-green-600 text-sm font-medium flex items-center gap-2 animate-fade-in">

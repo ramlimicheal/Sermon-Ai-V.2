@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getSermons, deleteSermon, getProfile } from '@/services/storageService';
+import { getSermons, deleteSermon, getProfile } from '@/services/supabaseStorageService';
 import { SavedSermon, UserProfile } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Trash2, BookOpen, FileText, Download, LayoutTemplate, Search, Plus, MoreHorizontal } from 'lucide-react';
@@ -18,11 +18,26 @@ export const SermonLibrary: React.FC<SermonLibraryProps> = ({ onOpenSermon, onNe
   const [showTemplates, setShowTemplates] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLanguage, setFilterLanguage] = useState<'all' | 'English' | 'Tamil'>('all');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setSermons(getSermons());
-    setProfile(getProfile());
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const [sermonsData, profileData] = await Promise.all([
+        getSermons(),
+        getProfile()
+      ]);
+      setSermons(sermonsData);
+      setProfile(profileData);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredSermons = sermons.filter(sermon => {
     const matchesSearch = sermon.scripture.toLowerCase().includes(searchQuery.toLowerCase());
@@ -30,11 +45,16 @@ export const SermonLibrary: React.FC<SermonLibraryProps> = ({ onOpenSermon, onNe
     return matchesSearch && matchesLanguage;
   });
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm('Are you sure you want to delete this sermon?')) {
-      deleteSermon(id);
-      setSermons(getSermons());
+      try {
+        await deleteSermon(id);
+        await loadData();
+      } catch (error) {
+        console.error('Error deleting sermon:', error);
+        alert('Failed to delete sermon. Please try again.');
+      }
     }
   };
 

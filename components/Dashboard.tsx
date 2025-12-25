@@ -47,7 +47,7 @@ import {
   Command
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { saveSermon, addSermonVersion, getSermonVersions, restoreSermonVersion, deleteSermonVersion, updateSermonTags, scheduleSermon, getScheduledSermons, removeScheduledSermon } from '@/services/storageService';
+import { saveSermon, addSermonVersion, getSermonVersions, restoreSermonVersion, deleteSermonVersion, updateSermonTags, scheduleSermon, getScheduledSermons, removeScheduledSermon } from '@/services/supabaseStorageService';
 
 interface DashboardProps {
   data: SermonData;
@@ -105,50 +105,81 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
     setCurrentNotes(data.notes || '');
     setCurrentId(data.id);
     if (data.id) {
-      setVersions(getSermonVersions(data.id));
-      setScheduledSermons(getScheduledSermons());
+      loadVersionsAndSchedule(data.id);
     }
   }, [data]);
 
-  const handleSaveNotes = (newContent: string) => {
-    setCurrentNotes(newContent);
-    const saved = saveSermon({
-      id: currentId,
-      scripture: data.scripture,
-      language: data.language,
-      notes: newContent
-    });
-    if (!currentId) {
-      setCurrentId(saved.id);
-    }
-    // Add version
-    if (currentId) {
-      addSermonVersion(currentId, newContent, 'Auto-saved');
-      setVersions(getSermonVersions(currentId));
+  const loadVersionsAndSchedule = async (sermonId: string) => {
+    try {
+      const [versionsData, scheduledData] = await Promise.all([
+        getSermonVersions(sermonId),
+        getScheduledSermons()
+      ]);
+      setVersions(versionsData);
+      setScheduledSermons(scheduledData);
+    } catch (error) {
+      console.error('Error loading versions and schedule:', error);
     }
   };
 
-  const handleTagsChange = (newTags: string[]) => {
+  const handleSaveNotes = async (newContent: string) => {
+    setCurrentNotes(newContent);
+    try {
+      const saved = await saveSermon({
+        id: currentId,
+        scripture: data.scripture,
+        language: data.language,
+        notes: newContent
+      });
+      if (!currentId) {
+        setCurrentId(saved.id);
+      }
+      // Add version
+      if (currentId || saved.id) {
+        const sermonId = currentId || saved.id;
+        await addSermonVersion(sermonId, newContent, 'Auto-saved');
+        const updatedVersions = await getSermonVersions(sermonId);
+        setVersions(updatedVersions);
+      }
+    } catch (error) {
+      console.error('Error saving sermon:', error);
+    }
+  };
+
+  const handleTagsChange = async (newTags: string[]) => {
     setTags(newTags);
     if (currentId) {
-      updateSermonTags(currentId, newTags);
-    }
-  };
-
-  const handleRestoreVersion = (versionId: string) => {
-    if (currentId) {
-      restoreSermonVersion(currentId, versionId);
-      const version = versions.find(v => v.id === versionId);
-      if (version) {
-        setCurrentNotes(version.content);
+      try {
+        await updateSermonTags(currentId, newTags);
+      } catch (error) {
+        console.error('Error updating tags:', error);
       }
     }
   };
 
-  const handleDeleteVersion = (versionId: string) => {
+  const handleRestoreVersion = async (versionId: string) => {
     if (currentId) {
-      deleteSermonVersion(currentId, versionId);
-      setVersions(getSermonVersions(currentId));
+      try {
+        await restoreSermonVersion(currentId, versionId);
+        const version = versions.find(v => v.id === versionId);
+        if (version) {
+          setCurrentNotes(version.content);
+        }
+      } catch (error) {
+        console.error('Error restoring version:', error);
+      }
+    }
+  };
+
+  const handleDeleteVersion = async (versionId: string) => {
+    if (currentId) {
+      try {
+        await deleteSermonVersion(currentId, versionId);
+        const updatedVersions = await getSermonVersions(currentId);
+        setVersions(updatedVersions);
+      } catch (error) {
+        console.error('Error deleting version:', error);
+      }
     }
   };
 
@@ -167,14 +198,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ data, onBack }) => {
     setTeamMembers(teamMembers.filter(m => m.id !== memberId));
   };
 
-  const handleScheduleSermon = (date: string, scripture: string, title?: string) => {
-    const scheduled = scheduleSermon(date, scripture, title);
-    setScheduledSermons(getScheduledSermons());
+  const handleScheduleSermon = async (date: string, scripture: string, title?: string) => {
+    try {
+      await scheduleSermon(date, scripture, title);
+      const updated = await getScheduledSermons();
+      setScheduledSermons(updated);
+    } catch (error) {
+      console.error('Error scheduling sermon:', error);
+    }
   };
 
-  const handleRemoveSchedule = (id: string) => {
-    removeScheduledSermon(id);
-    setScheduledSermons(getScheduledSermons());
+  const handleRemoveSchedule = async (id: string) => {
+    try {
+      await removeScheduledSermon(id);
+      const updated = await getScheduledSermons();
+      setScheduledSermons(updated);
+    } catch (error) {
+      console.error('Error removing schedule:', error);
+    }
   };
 
   const handleTranscriptionComplete = (text: string) => {

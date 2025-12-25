@@ -11,21 +11,73 @@ import { OnboardingFlow, hasCompletedOnboarding } from '@/components/OnboardingF
 import { VoiceProfile } from '@/components/YourVoiceSettings';
 import { CommandPalette, useCommandPalette } from '@/components/CommandPalette';
 import { SermonData, Language, SavedSermon } from '@/types';
-import { getSermons } from '@/services/storageService';
+import { getSermons } from '@/services/supabaseStorageService';
+import { authService } from '@/services/authService';
+import type { User } from '@supabase/supabase-js';
 
 type View = 'landing' | 'auth' | 'onboarding' | 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
 
 export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>('landing');
   const [sermonData, setSermonData] = useState<SermonData | null>(null);
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
+  const [recentSermons, setRecentSermons] = useState<any[]>([]);
   const { isOpen: commandPaletteOpen, open: openPalette, close: closePalette } = useCommandPalette();
 
-  const recentSermons = getSermons().slice(0, 5).map(s => ({
-    id: s.id,
-    title: s.scripture,
-    date: s.updatedAt,
-  }));
+  // Check auth state on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { user: currentUser } = await authService.getUser();
+      setUser(currentUser);
+      setLoading(false);
+
+      if (currentUser) {
+        if (!hasCompletedOnboarding()) {
+          setView('onboarding');
+        } else {
+          setView('dashboard');
+        }
+      } else {
+        setView('landing');
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth changes
+    const subscription = authService.onAuthStateChange((newUser, session) => {
+      setUser(newUser);
+      if (!newUser) {
+        setView('landing');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Load recent sermons when user is authenticated
+  useEffect(() => {
+    if (user) {
+      loadRecentSermons();
+    }
+  }, [user]);
+
+  const loadRecentSermons = async () => {
+    try {
+      const sermons = await getSermons();
+      setRecentSermons(sermons.slice(0, 5).map(s => ({
+        id: s.id,
+        title: s.scripture,
+        date: s.updatedAt,
+      })));
+    } catch (error) {
+      console.error('Error loading sermons:', error);
+    }
+  };
 
   const handleCommandNavigate = (targetView: string) => {
     setView(targetView as View);
@@ -83,6 +135,18 @@ export default function App() {
     const handleOnboardingSkip = () => {
       setView('dashboard');
     };
+
+    // Show loading screen while checking auth
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-bible-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-bible-200 border-t-bible-900 mb-4"></div>
+            <p className="text-bible-600 font-medium">Loading...</p>
+          </div>
+        </div>
+      );
+    }
 
     // Show landing page for unauthenticated users
     if (view === 'landing') {
