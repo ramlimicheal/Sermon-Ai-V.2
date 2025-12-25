@@ -1,9 +1,9 @@
 import React from 'react';
-import { LayoutDashboard, PlusCircle, Settings, HelpCircle, BarChart3, BookOpen, LogOut } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, HelpCircle, BarChart3, BookOpen, LogOut, Activity } from 'lucide-react';
 
 interface SidebarProps {
-  currentView: 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
-  onChangeView: (view: 'dashboard' | 'new' | 'profile' | 'analytics') => void;
+  currentView: 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics' | 'testing';
+  onChangeView: (view: 'dashboard' | 'new' | 'profile' | 'analytics' | 'testing') => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) => {
@@ -14,6 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentView, onChangeView }) =
   ];
 
   const utilityNav = [
+    { id: 'testing', label: 'AI Testing', icon: Activity },
     { id: 'profile', label: 'Settings', icon: Settings },
   ];
 

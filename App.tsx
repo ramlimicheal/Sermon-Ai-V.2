@@ -10,12 +10,13 @@ import { AuthPages } from '@/components/AuthPages';
 import { OnboardingFlow, hasCompletedOnboarding } from '@/components/OnboardingFlow';
 import { VoiceProfile } from '@/components/YourVoiceSettings';
 import { CommandPalette, useCommandPalette } from '@/components/CommandPalette';
+import { AITestingHub } from '@/components/AITestingHub';
 import { SermonData, Language, SavedSermon } from '@/types';
 import { getSermons } from '@/services/supabaseStorageService';
 import { authService } from '@/services/authService';
 import type { User } from '@supabase/supabase-js';
 
-type View = 'landing' | 'auth' | 'onboarding' | 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics';
+type View = 'landing' | 'auth' | 'onboarding' | 'dashboard' | 'new' | 'profile' | 'workspace' | 'analytics' | 'testing';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -210,6 +211,12 @@ export default function App() {
         {view === 'analytics' && (
            <div className="h-full overflow-y-auto">
               <SermonAnalytics />
+           </div>
+        )}
+
+        {view === 'testing' && (
+           <div className="h-full overflow-hidden">
+              <AITestingHub />
            </div>
         )}
 
